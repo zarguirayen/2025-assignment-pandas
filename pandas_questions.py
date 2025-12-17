@@ -41,14 +41,11 @@ def merge_regions_and_departments(regions, departments):
             "region_code": "code_reg",
         }
     )
-
     regions = regions.copy()
     departments = departments.copy()
-
     regions["code_reg"] = regions["code_reg"].astype(str)
     departments["code_reg"] = departments["code_reg"].astype(str)
     departments["code_dep"] = departments["code_dep"].astype(str)
-
     merged = departments.merge(
         regions[["code_reg", "name_reg"]],
         on="code_reg",
@@ -68,7 +65,6 @@ def merge_referendum_and_areas(referendum, regions_and_departments):
     """
     referendum = referendum.copy()
     regions_and_departments = regions_and_departments.copy()
-
     referendum["code_dep"] = (
         referendum["Department code"]
         .astype(str)
@@ -76,27 +72,21 @@ def merge_referendum_and_areas(referendum, regions_and_departments):
         .str.zfill(2)
     )
     referendum["name_dep"] = referendum["Department name"].astype(str)
-
     regions_and_departments["code_dep"] = (
         regions_and_departments["code_dep"]
         .astype(str)
         .str.strip()
         .str.zfill(2)
     )
-
-    # Drop overseas / abroad codes containing 'Z'
     referendum = referendum[~referendum["code_dep"].str.contains("Z", na=False)]
-
     merged = referendum.merge(
         regions_and_departments,
         on="code_dep",
         how="left",
         suffixes=("", "_area"),
     )
-
     if "name_dep_area" in merged.columns:
         merged = merged.drop(columns=["name_dep_area"])
-
     return merged
 
 
@@ -132,20 +122,16 @@ def plot_referendum_map(referendum_result_by_regions):
     """
     geo = gpd.read_file("data/regions.geojson").copy()
     res = referendum_result_by_regions.reset_index().copy()
-
     geo["code"] = geo["code"].astype(str)
     res["code_reg"] = res["code_reg"].astype(str)
-
     merged = geo.merge(
         res,
         left_on="code",
         right_on="code_reg",
         how="left",
     )
-
     denom = merged["Choice A"] + merged["Choice B"]
     merged["ratio"] = merged["Choice A"] / denom.replace(0, pd.NA)
-
     ax = merged.plot(
         column="ratio",
         legend=True,
@@ -155,7 +141,6 @@ def plot_referendum_map(referendum_result_by_regions):
     ax.set_axis_off()
     ax.set_title("Referendum: Choice A share among expressed ballots")
     plt.tight_layout()
-
     return merged
 
 
